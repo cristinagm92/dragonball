@@ -1,6 +1,5 @@
 @use './core/reset';
 
-/* Aquí van los estilos */
 .app {
   font-family: sans-serif;
   padding: 2rem;
@@ -22,11 +21,14 @@ input[type="text"] {
 
 .slider {
   margin-bottom: 1rem;
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
 }
 
-.slider input[type="range"] {
-  width: 100%;
-  margin: 0.5rem 0;
+.slider input[type="number"] {
+  padding: 0.5rem;
+  width: 120px;
 }
 
 .results {
@@ -40,16 +42,22 @@ input[type="text"] {
   border-radius: 8px;
   padding: 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: scale(1.05);
 }
 
 .card img {
   width: 100%;
   border-radius: 4px;
+  margin-bottom: 0.5rem;
 }
 
 .error {
   color: red;
   font-weight: bold;
+  margin-bottom: 1rem;
 }
-
-  

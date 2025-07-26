@@ -1,116 +1,129 @@
 import '../styles/App.scss';
-import React, { useState, useEffect } from "react";
 
+
+import React, { useState, useEffect } from 'react';
+
+const cleanKi = (value) => {
+  if (!value) return 0;
+  const raw = value.replace(/[^0-9]/g, '');
+  return raw ? parseInt(raw, 10) : 0;
+};
 
 const App = () => {
-  const [query, setQuery] = useState("");
-  const [characters, setCharacters] = useState([]);
+  const [items, setItems] = useState([]);
+  const [query, setQuery] = useState('');
+  const [kiRange, setKiRange] = useState([0, 1000000000]);
   const [error, setError] = useState(null);
-  const [kiRange, setKiRange] = useState([0, 1000000000000]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchAllCharacters = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("https://dragonball-api.com/api/characters?limit=1000");
-      if (!res.ok) throw new Error("Error al cargar personajes");
-      const data = await res.json();
-      const items = Array.isArray(data.items) ? data.items : [];
-      setCharacters(items);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-      setCharacters([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterCharacters = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("https://dragonball-api.com/api/characters?limit=1000");
-      if (!res.ok) throw new Error("Error al cargar personajes");
-      const data = await res.json();
-      const items = Array.isArray(data.items) ? data.items : [];
-
-      const filtered = items.filter((char) => {
-        const nameMatch = char.name?.toLowerCase().includes(query.toLowerCase());
-        const rawKi = char.ki?.replace(/\D/g, "");
-        const ki = rawKi ? parseInt(rawKi) : 0;
-        const kiMatch = ki >= kiRange[0] && ki <= kiRange[1];
-        return nameMatch && kiMatch;
-      });
-
-      setCharacters(filtered);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-      setCharacters([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    if (query.length === 0 && kiRange[0] === 0 && kiRange[1] === 1000000000000) {
-      fetchAllCharacters();
-    } else {
-      filterCharacters();
-    }
-  }, [query, kiRange]);
+    const fetchAllCharacters = async () => {
+      let allCharacters = [];
+      let page = 1;
+      let keepGoing = true;
+
+      try {
+        // 1. Recorrer todas las páginas del endpoint paginado
+        while (keepGoing) {
+          const res = await fetch(`https://dragonball-api.com/api/characters?page=${page}&limit=10`);
+          const data = await res.json();
+
+          if (Array.isArray(data.items) && data.items.length > 0) {
+            allCharacters = [...allCharacters, ...data.items];
+            page += 1;
+
+            if (data.items.length < 10) {
+              keepGoing = false;
+            }
+          } else {
+            keepGoing = false;
+          }
+        }
+
+        // 2. Llamada adicional con filtros para incluir personajes como Goku
+        const resFiltered = await fetch(
+          'https://dragonball-api.com/api/characters?race=Saiyan&affiliation=Z fighter'
+        );
+        const filteredData = await resFiltered.json();
+
+        if (Array.isArray(filteredData)) {
+          allCharacters = [...allCharacters, ...filteredData];
+        }
+
+        // Eliminar duplicados por ID o nombre
+        const uniqueCharacters = Array.from(
+          new Map(allCharacters.map((char) => [char.id || char.name, char])).values()
+        );
+
+        setItems(uniqueCharacters);
+      } catch (err) {
+        console.error('Error al cargar personajes:', err);
+        setError('No se pudieron cargar todos los personajes. 🛠️');
+      }
+    };
+
+    fetchAllCharacters();
+  }, []);
+
+  const handleChange = (e) => {
+    setQuery(e.target.value);
+  };
+
+  const handleRangeChange = (e, index) => {
+    const newRange = [...kiRange];
+    newRange[index] = Number(e.target.value);
+    setKiRange(newRange);
+  };
+
+  const filtered = items.filter((char) => {
+    const nameMatch = char.name?.toLowerCase().includes(query.toLowerCase());
+    const ki = cleanKi(char.ki);
+    const kiMatch = ki >= kiRange[0] && ki <= kiRange[1];
+    return nameMatch && kiMatch;
+  });
 
   return (
     <div className="app">
-      <h1>🔍 Buscador Dragon Ball</h1>
+      <h1>🌟 Buscador de personajes Dragon Ball</h1>
 
       <input
         type="text"
-        placeholder="Buscar personaje..."
+        placeholder="Buscar por nombre..."
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        aria-label="Buscar por nombre"
+        onChange={handleChange}
       />
 
       <div className="slider">
-        <label>Rango de Ki:</label>
-        <input
-          type="range"
-          min="0"
-          max="1000000000000"
-          value={kiRange[0]}
-          onChange={(e) =>
-            setKiRange([parseInt(e.target.value), kiRange[1]])
-          }
-        />
-        <input
-          type="range"
-          min="0"
-          max="1000000000000"
-          value={kiRange[1]}
-          onChange={(e) =>
-            setKiRange([kiRange[0], parseInt(e.target.value)])
-          }
-        />
-        <p>
-          Min: {kiRange[0].toLocaleString()} - Max:{" "}
-          {kiRange[1].toLocaleString()}
-        </p>
+        <label>
+          Rango mínimo de ki:
+          <input
+            type="number"
+            value={kiRange[0]}
+            onChange={(e) => handleRangeChange(e, 0)}
+          />
+        </label>
+        <label>
+          Rango máximo de ki:
+          <input
+            type="number"
+            value={kiRange[1]}
+            onChange={(e) => handleRangeChange(e, 1)}
+          />
+        </label>
       </div>
 
-      {loading && <p>Cargando personajes...</p>}
       {error && <p className="error">{error}</p>}
-      {!loading && characters.length === 0 && (
-        <p>No se encontraron personajes con ese criterio.</p>
-      )}
+      {filtered.length === 0 && !error && <p>Cargando personajes o no se encontraron resultados...</p>}
 
       <div className="results">
-        {characters.map((char) => (
-          <div key={char.id} className="card">
-            <img src={char.image} alt={char.name} />
-            <h2>{char.name}</h2>
-            <p>{char.description}</p>
-            <p>⚡ Ki: {char.ki || "No disponible"}</p>
+        {filtered.map((char) => (
+          <div className="card" key={char.id || char.name}>
+            <img
+              src={char.image}
+              alt={char.name}
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+            <h3>{char.name}</h3>
+            <p>Ki: {cleanKi(char.ki) || 'Desconocido'}</p>
           </div>
         ))}
       </div>
@@ -119,3 +132,4 @@ const App = () => {
 };
 
 export default App;
+
