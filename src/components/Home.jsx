@@ -1,4 +1,5 @@
 
+
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -28,14 +29,12 @@ const Home = () => {
           if (Array.isArray(data.items) && data.items.length > 0) {
             allCharacters = [...allCharacters, ...data.items];
             page += 1;
-
             if (data.items.length < 10) keepGoing = false;
           } else {
             keepGoing = false;
           }
         }
 
-        // Extra: llamada con filtros Saiyan
         const extra = await fetch(
           "https://dragonball-api.com/api/characters?race=Saiyan&affiliation=Z fighter"
         );
@@ -73,7 +72,19 @@ const Home = () => {
 
   return (
     <div className="app">
-      <h1>🌟 Buscador de personajes Dragon Ball</h1>
+      <h1>
+        <img
+          src="/dragonball.png"
+          alt="Bola de Dragón"
+          style={{
+            width: "50px",
+            height: "40px",
+            verticalAlign: "middle",
+            marginRight: "8px"
+          }}
+        />
+        Buscador de personajes Dragon Ball
+      </h1>
 
       <input
         type="text"
