@@ -1,20 +1,19 @@
 import '../styles/App.scss';
 
-
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import Personaje from "./Personaje";
-import Home from "./Home"; // Tu componente original con las tarjetas
-
+import Home from "./Home";
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/personaje/:id" element={<Personaje />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 
 export default App;
+

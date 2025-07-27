@@ -74,7 +74,7 @@ const Home = () => {
     <div className="app">
       <h1>
         <img
-          src="/dragonball.png"
+          src="./dragonball.png"
           alt="Bola de Dragón"
           style={{
             width: "50px",
