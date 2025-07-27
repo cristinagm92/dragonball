@@ -61,3 +61,27 @@ input[type="text"] {
   font-weight: bold;
   margin-bottom: 1rem;
 }
+
+.personaje-detalle {
+  padding: 2rem;
+  max-width: 900px;
+  margin: auto;
+}
+
+.personaje-img,
+.transformation-img {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.transformaciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.transformation {
+  width: 150px;
+  text-align: center;
+}
